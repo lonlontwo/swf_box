@@ -507,6 +507,211 @@
             gap: 12px;
             justify-content: flex-end;
         }
+
+        /* ================================ */
+        /* RWD 響應式設計 */
+        /* ================================ */
+
+        @media (max-width: 768px) {
+
+            /* Header */
+            .header {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+            }
+
+            .logo {
+                font-size: 1rem;
+            }
+
+            .header-actions {
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+
+            .btn-small {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+
+            /* Container */
+            .container {
+                padding: 16px;
+            }
+
+            /* Tabs */
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+
+            /* Form */
+            .add-form {
+                padding: 16px;
+            }
+
+            .form-title {
+                font-size: 0.9rem;
+            }
+
+            .form-label {
+                font-size: 0.8rem;
+            }
+
+            .form-input {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+
+            .submit-btn {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+
+            /* Item List */
+            .item-card {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .drag-handle {
+                display: none;
+                /* 手機上隱藏拖曳手柄 */
+            }
+
+            .item-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+
+            .item-info {
+                width: 100%;
+            }
+
+            .item-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .item-name {
+                font-size: 0.95rem;
+            }
+
+            .item-url {
+                font-size: 0.75rem;
+                max-width: 100%;
+            }
+
+            .item-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            /* Modal */
+            .modal {
+                margin: 10px;
+                max-width: calc(100% - 20px);
+            }
+
+            .modal-header {
+                padding: 16px;
+            }
+
+            .modal-title {
+                font-size: 1.1rem;
+            }
+
+            .modal-body {
+                padding: 16px;
+            }
+
+            .modal-footer {
+                padding: 12px 16px;
+                flex-direction: column-reverse;
+            }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+
+            /* Login */
+            .login-box {
+                padding: 32px 24px;
+                margin: 20px;
+            }
+
+            .login-title {
+                font-size: 1.3rem;
+            }
+
+            /* Toggle */
+            .toggle {
+                width: 44px;
+                height: 24px;
+            }
+
+            .toggle-slider:before {
+                height: 18px;
+                width: 18px;
+            }
+
+            .toggle input:checked+.toggle-slider:before {
+                transform: translateX(20px);
+            }
+
+            /* File Preview */
+            .file-preview {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .file-preview-name {
+                word-break: break-all;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 10px 12px;
+            }
+
+            .logo span:last-child {
+                display: none;
+                /* 超小螢幕隱藏文字 */
+            }
+
+            .container {
+                padding: 12px;
+            }
+
+            .add-form {
+                padding: 12px;
+            }
+
+            .item-card {
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 
