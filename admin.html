@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台管理 - SWF 展示庫</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #1a1a1a;
+            --bg-card: #2d2d2d;
+            --bg-input: #3a3a3a;
+            --accent: #ff9800;
+            --accent-hover: #ffa726;
+            --text-primary: #ffffff;
+            --text-secondary: #999999;
+            --border: #444444;
+            --success: #4caf50;
+            --danger: #f44336;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* Add Form */
+        .add-form {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .submit-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+
+        /* Item List */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px 20px;
+            transition: all 0.2s;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .item-card:hover {
+            background: var(--bg-input);
+        }
+
+        .item-card.dragging {
+            opacity: 0.5;
+            background: var(--accent);
+        }
+
+        .item-card.drag-over {
+            border: 2px dashed var(--accent);
+        }
+
+        .drag-handle {
+            cursor: grab;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            padding: 8px;
+        }
+
+        .drag-handle:hover {
+            color: var(--accent);
+        }
+
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .item-url {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-url a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .item-url a:hover {
+            color: var(--accent);
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Toggle Switch */
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--border);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: var(--success);
+        }
+
+        .toggle input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Login Screen */
+        .login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 48px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .login-box .form-input {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 12px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        /* File Preview */
+        .file-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .file-preview-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .file-preview-size {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .file-preview-remove {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-box">
+            <div class="login-title">🔐 後台管理</div>
+            <p class="login-subtitle">請輸入管理密碼</p>
+            <input type="password" id="password-input" class="form-input" placeholder="輸入密碼..." autofocus>
+            <button id="login-btn" class="btn btn-primary" style="width: 100%; padding: 14px;">登入</button>
+            <p id="login-error" class="login-error" style="display: none;"></p>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span>🎬</span>
+                <span>SWF 後台管理</span>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">🏠 前台</a>
+                <button id="settings-btn" class="btn btn-secondary">⚙️ 設定</button>
+                <button id="logout-btn" class="btn btn-secondary">🚪 登出</button>
+            </div>
+        </header>
+
+        <!-- Main -->
+        <div class="container">
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active">📤 新增作品</div>
+            </div>
+
+            <!-- Add Form -->
+            <div class="add-form">
+                <div class="form-title">新增作品</div>
+
+                <div class="form-row">
+                    <label class="form-label">作品標題</label>
+                    <input type="text" id="item-title" class="form-input" placeholder="輸入作品標題...">
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">選擇 SWF 檔案（上傳新檔案）</label>
+                    <input type="file" id="file-input" class="form-input" accept=".swf">
+                    <div id="file-preview" style="display: none;"></div>
+                    <div id="progress-bar" class="progress-bar" style="display: none;">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; color: #666; margin: 12px 0;">── 或 ──</div>
+
+                <div class="form-row">
+                    <label class="form-label">SWF 連結（已有連結時填寫）</label>
+                    <input type="url" id="item-url" class="form-input"
+                        placeholder="https://swf-api.lonlontwo0420.workers.dev/xxxx.swf">
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">縮圖連結（可選）</label>
+                    <input type="url" id="item-thumbnail" class="form-input"
+                        placeholder="https://example.com/image.jpg">
+                </div>
+
+                <button id="submit-btn" class="submit-btn">📤 新增作品</button>
+            </div>
+
+            <!-- Item List -->
+            <div id="item-list" class="item-list"></div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3>還沒有任何作品</h3>
+                <p>使用上方表單新增您的第一個 SWF 作品</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ 編輯作品</h3>
+                <button class="modal-close" onclick="closeEditModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-id">
+                <div class="form-row">
+                    <label class="form-label">作品標題</label>
+                    <input type="text" id="edit-title" class="form-input" placeholder="輸入作品標題...">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">SWF 連結</label>
+                    <input type="url" id="edit-url" class="form-input" placeholder="https://...">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">縮圖連結（可選）</label>
+                    <input type="url" id="edit-thumbnail" class="form-input"
+                        placeholder="https://example.com/image.jpg">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveEdit()">💾 儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">⚙️ 系統設定</h3>
+                <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <label class="form-label">目前密碼</label>
+                    <input type="password" id="current-password" class="form-input" placeholder="輸入目前密碼...">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">新密碼</label>
+                    <input type="password" id="new-password" class="form-input" placeholder="輸入新密碼...">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">確認新密碼</label>
+                    <input type="password" id="confirm-password" class="form-input" placeholder="再次輸入新密碼...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSettingsModal()">取消</button>
+                <button class="btn btn-primary" onclick="savePassword()">🔐 更新密碼</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        let selectedFile = null;
+        const $ = id => document.getElementById(id);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initFirebase();
+            if (sessionStorage.getItem('admin_logged_in') === 'true') {
+                showAdmin();
+            }
+            $('login-btn').addEventListener('click', login);
+            $('password-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') login();
+            });
+            $('logout-btn').addEventListener('click', logout);
+            $('settings-btn').addEventListener('click', openSettingsModal);
+            $('submit-btn').addEventListener('click', submitForm);
+            $('file-input').addEventListener('change', handleFileSelect);
+        });
+
+        async function login() {
+            const password = $('password-input').value.trim();
+            if (!password) {
+                $('login-error').textContent = '請輸入密碼';
+                $('login-error').style.display = 'block';
+                return;
+            }
+            const isValid = await DataAPI.verifyPassword(password);
+            if (isValid) {
+                sessionStorage.setItem('admin_logged_in', 'true');
+                showAdmin();
+            } else {
+                $('login-error').textContent = '密碼錯誤';
+                $('login-error').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('admin_logged_in');
+            $('admin-panel').style.display = 'none';
+            $('login-screen').style.display = 'flex';
+            $('password-input').value = '';
+        }
+
+        function showAdmin() {
+            $('login-screen').style.display = 'none';
+            $('admin-panel').style.display = 'block';
+            loadItems();
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            selectedFile = file;
+            if (!$('item-title').value) {
+                $('item-title').value = file.name.replace('.swf', '');
+            }
+            $('file-preview').innerHTML = `
+                <div class="file-preview">
+                    <span>🎬</span>
+                    <span class="file-preview-name">${file.name}</span>
+                    <span class="file-preview-size">${formatSize(file.size)}</span>
+                    <button class="file-preview-remove" onclick="removeFile()">✕</button>
+                </div>
+            `;
+            $('file-preview').style.display = 'block';
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            $('file-input').value = '';
+            $('file-preview').style.display = 'none';
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        async function submitForm() {
+            const title = $('item-title').value.trim();
+            const thumbnail = $('item-thumbnail').value.trim();
+            const manualUrl = $('item-url').value.trim();
+
+            if (!title) { alert('請輸入作品標題'); return; }
+
+            // 如果有手動輸入 URL，就直接用 URL
+            if (manualUrl) {
+                await DataAPI.addItem({ title, swfUrl: manualUrl, thumbnail, filename: '' });
+                $('item-title').value = '';
+                $('item-url').value = '';
+                $('item-thumbnail').value = '';
+                loadItems();
+                alert('✅ 新增成功！');
+                return;
+            }
+
+            // 否則要有選擇檔案
+            if (!selectedFile) { alert('請選擇 SWF 檔案或輸入 SWF 連結'); return; }
+
+            $('submit-btn').disabled = true;
+            $('submit-btn').textContent = '上傳中...';
+            $('progress-bar').style.display = 'block';
+
+            try {
+                const filename = `${Date.now()}_${selectedFile.name}`;
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress <= 90) $('progress-fill').style.width = progress + '%';
+                }, 100);
+
+                const swfUrl = await SWFAPI.uploadFile(selectedFile, filename);
+                clearInterval(interval);
+                $('progress-fill').style.width = '100%';
+
+                await DataAPI.addItem({ title, swfUrl, thumbnail, filename });
+
+                $('item-title').value = '';
+                $('item-url').value = '';
+                $('item-thumbnail').value = '';
+                removeFile();
+                $('progress-bar').style.display = 'none';
+                $('progress-fill').style.width = '0%';
+                loadItems();
+                alert('✅ 上傳成功！');
+            } catch (error) {
+                console.error(error);
+                alert('❌ 上傳失敗: ' + error.message);
+            }
+
+            $('submit-btn').disabled = false;
+            $('submit-btn').textContent = '📤 新增作品';
+        }
+
+        async function loadItems() {
+            const items = await DataAPI.getItems();
+            if (items.length === 0) {
+                $('item-list').innerHTML = '';
+                $('empty-state').style.display = 'block';
+                return;
+            }
+
+            $('empty-state').style.display = 'none';
+            $('item-list').innerHTML = items.map((item, index) => `
+                <div class="item-card" draggable="true" data-id="${item.id}" data-index="${index}">
+                    <div class="drag-handle" title="拖曳排序">⋮⋮</div>
+                    <div class="item-icon">🎬</div>
+                    <div class="item-info">
+                        <div class="item-title">
+                            <span class="item-name">${escapeHtml(item.title)}</span>
+                            <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteItem('${item.id}', '${item.filename || ''}')">🗑️</button>
+                        </div>
+                        <div class="item-url">
+                            🔗 <a href="${item.swfUrl}" target="_blank" onclick="event.stopPropagation()">${item.swfUrl.substring(0, 50)}...</a>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); playItem('${encodeURIComponent(item.swfUrl)}', '${encodeURIComponent(item.title)}')">▶️ 播放</button>
+                        <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); editItem('${item.id}')">編輯</button>
+                        <label class="toggle" onclick="event.stopPropagation()">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+
+            setupDragAndDrop();
+        }
+
+        function playItem(url, title) {
+            window.open(`player?url=${url}&title=${title}`, '_blank');
+        }
+
+        function editItem(id) {
+            const items = DataAPI.getLocalItems();
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            $('edit-id').value = id;
+            $('edit-title').value = item.title;
+            $('edit-url').value = item.swfUrl;
+            $('edit-thumbnail').value = item.thumbnail || '';
+
+            $('edit-modal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            $('edit-modal').classList.remove('active');
+        }
+
+        function saveEdit() {
+            const id = $('edit-id').value;
+            const title = $('edit-title').value.trim();
+            const swfUrl = $('edit-url').value.trim();
+            const thumbnail = $('edit-thumbnail').value.trim();
+
+            if (!title) {
+                alert('請輸入作品標題');
+                return;
+            }
+            if (!swfUrl) {
+                alert('請輸入 SWF 連結');
+                return;
+            }
+
+            DataAPI.updateItem(id, { title, swfUrl, thumbnail });
+            closeEditModal();
+            loadItems();
+            alert('✅ 已儲存');
+        }
+
+        async function deleteItem(id, filename) {
+            if (!confirm('確定要刪除這個作品嗎？')) return;
+            try {
+                if (filename) await SWFAPI.deleteFile(filename);
+                await DataAPI.deleteItem(id);
+                loadItems();
+                alert('✅ 已刪除');
+            } catch (error) {
+                console.error(error);
+                alert('❌ 刪除失敗');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 拖曳排序
+        let draggedItem = null;
+        let draggedIndex = null;
+
+        function setupDragAndDrop() {
+            const cards = document.querySelectorAll('.item-card');
+            cards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('dragenter', handleDragEnter);
+                card.addEventListener('dragleave', handleDragLeave);
+                card.addEventListener('drop', handleDrop);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            draggedIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (this !== draggedItem) this.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (this === draggedItem) return;
+            const targetIndex = parseInt(this.dataset.index);
+            let items = DataAPI.getLocalItems();
+            const [movedItem] = items.splice(draggedIndex, 1);
+            items.splice(targetIndex, 0, movedItem);
+            localStorage.setItem('swf_items', JSON.stringify(items));
+            loadItems();
+        }
+
+        // ================================
+        // 設定功能
+        // ================================
+
+        function openSettingsModal() {
+            $('current-password').value = '';
+            $('new-password').value = '';
+            $('confirm-password').value = '';
+            $('settings-modal').classList.add('active');
+        }
+
+        function closeSettingsModal() {
+            $('settings-modal').classList.remove('active');
+        }
+
+        async function savePassword() {
+            const currentPwd = $('current-password').value.trim();
+            const newPwd = $('new-password').value.trim();
+            const confirmPwd = $('confirm-password').value.trim();
+
+            if (!currentPwd || !newPwd || !confirmPwd) {
+                alert('請填寫所有欄位');
+                return;
+            }
+
+            // 驗證目前密碼
+            const isValid = await DataAPI.verifyPassword(currentPwd);
+            if (!isValid) {
+                alert('❌ 目前密碼錯誤');
+                return;
+            }
+
+            // 確認新密碼
+            if (newPwd !== confirmPwd) {
+                alert('❌ 新密碼與確認密碼不符');
+                return;
+            }
+
+            if (newPwd.length < 6) {
+                alert('❌ 密碼至少需要 6 個字元');
+                return;
+            }
+
+            // 儲存新密碼
+            try {
+                await DataAPI.updatePassword(newPwd);
+                closeSettingsModal();
+                alert('✅ 密碼已更新！下次登入請使用新密碼');
+            } catch (error) {
+                console.error(error);
+                alert('❌ 密碼更新失敗');
+            }
+        }
+    </script>
+</body>
+
+</html>
