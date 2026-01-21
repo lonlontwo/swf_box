@@ -5,12 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SWF 展示庫</title>
-  <meta name="description" content="我的 SWF 作品收藏庫，使用 Ruffle 在任何設備上播放 Flash 內容">
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="description" content="我的 SWF 作品收藏庫">
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -23,15 +18,8 @@
 <body>
   <!-- Header -->
   <header class="header">
-    <div class="container header-content">
-      <div class="logo">
-        <span class="logo-icon">🎮</span>
-        <span>SWF 展示庫</span>
-      </div>
-      <nav>
-        <a href="admin.html" class="nav-link">⚙️ 管理</a>
-      </nav>
-    </div>
+    <div class="logo">🎬 SWF 展示庫</div>
+    <div class="subtitle">我的 Flash 作品收藏</div>
   </header>
 
   <!-- Main Content -->
@@ -39,6 +27,7 @@
     <!-- Loading State -->
     <div id="loading" class="loading">
       <div class="spinner"></div>
+      <p>載入中...</p>
     </div>
 
     <!-- Empty State -->
@@ -46,10 +35,7 @@
       <div class="empty-icon">📭</div>
       <h2 class="empty-title">還沒有任何作品</h2>
       <p class="empty-text">前往後台新增你的第一個 SWF 作品吧！</p>
-      <a href="admin.html" class="btn btn-primary">
-        <span>➕</span>
-        <span>新增作品</span>
-      </a>
+      <a href="admin.html" class="btn">➕ 新增作品</a>
     </div>
 
     <!-- Gallery Grid -->
