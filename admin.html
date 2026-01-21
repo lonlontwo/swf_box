@@ -68,7 +68,7 @@
         .btn {
             padding: 8px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
@@ -77,12 +77,13 @@
         }
 
         .btn-primary {
-            background: var(--accent);
+            background: var(--success);
             color: white;
         }
 
         .btn-primary:hover {
-            background: var(--accent-hover);
+            background: #45a049;
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
@@ -96,13 +97,20 @@
         }
 
         .btn-danger {
-            background: var(--danger);
+            background: #555555;
             color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #666666;
+            transform: translateY(-1px);
         }
 
         .btn-small {
-            padding: 4px 10px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
         }
 
         /* Main Container */
@@ -204,25 +212,30 @@
 
         /* Item List */
         .item-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
         }
 
         .item-card {
-            display: flex;
-            align-items: center;
-            gap: 16px;
             background: var(--bg-card);
-            border-radius: 12px;
-            padding: 16px 20px;
-            transition: all 0.2s;
-            cursor: grab;
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: default;
             user-select: none;
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 180px;
         }
 
         .item-card:hover {
             background: var(--bg-input);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
 
         .item-card.dragging {
@@ -235,26 +248,27 @@
         }
 
         .drag-handle {
-            cursor: grab;
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            padding: 8px;
+            display: none;
         }
 
-        .drag-handle:hover {
-            color: var(--accent);
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
         }
 
         .item-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--accent);
-            border-radius: 8px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 2rem;
             flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
         }
 
         .item-info {
@@ -266,29 +280,60 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .item-name {
             font-weight: 600;
             font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .item-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid var(--success);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 500;
         }
 
         .item-url {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-size: 0.85rem;
             color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .item-url svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
         }
 
         .item-url a {
             color: var(--text-secondary);
             text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .item-url a:hover {
             color: var(--accent);
+        }
+
+        .item-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
         }
 
         .item-actions {
@@ -579,46 +624,45 @@
             }
 
             /* Item List */
-            .item-card {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 12px;
+            .item-list {
+                grid-template-columns: 1fr;
                 gap: 12px;
             }
 
-            .drag-handle {
-                display: none;
-                /* 手機上隱藏拖曳手柄 */
+            .item-card {
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
             }
 
             .item-icon {
-                width: 32px;
-                height: 32px;
-                font-size: 1rem;
-            }
-
-            .item-info {
-                width: 100%;
-            }
-
-            .item-title {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
+                width: 64px;
+                height: 64px;
+                background: white;
+                border-radius: 12px;
+                font-size: 2rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             }
 
             .item-name {
-                font-size: 0.95rem;
+                font-size: 1rem;
             }
 
             .item-url {
-                font-size: 0.75rem;
-                max-width: 100%;
+                font-size: 0.8rem;
+            }
+
+            .item-footer {
+                padding-top: 10px;
             }
 
             .item-actions {
-                width: 100%;
-                justify-content: space-between;
+                gap: 6px;
             }
 
             /* Modal */
@@ -1140,24 +1184,33 @@
             $('empty-state').style.display = 'none';
             $('item-list').innerHTML = items.map((item, index) => `
                 <div class="item-card" draggable="true" data-id="${item.id}" data-index="${index}">
-                    <div class="drag-handle" title="拖曳排序">⋮⋮</div>
-                    <div class="item-icon">🎬</div>
-                    <div class="item-info">
-                        <div class="item-title">
-                            <span class="item-name">${escapeHtml(item.title)}</span>
-                            <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteItem('${item.id}', '${item.filename || ''}')">🗑️</button>
-                        </div>
-                        <div class="item-url">
-                            🔗 <a href="${item.swfUrl}" target="_blank" onclick="event.stopPropagation()">${item.swfUrl.substring(0, 50)}...</a>
+                    <div class="item-header">
+                        <div class="item-icon">🎬</div>
+                        <div class="item-info">
+                            <div class="item-title">
+                                <span class="item-name">${escapeHtml(item.title)}</span>
+                                <span class="item-badge">啟用</span>
+                            </div>
+                            <div class="item-url">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                </svg>
+                                <a href="${item.swfUrl}" target="_blank" onclick="event.stopPropagation()" title="${item.swfUrl}">${item.swfUrl.length > 40 ? item.swfUrl.substring(0, 40) + '...' : item.swfUrl}</a>
+                            </div>
                         </div>
                     </div>
-                    <div class="item-actions">
-                        <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); playItem('${encodeURIComponent(item.swfUrl)}', '${encodeURIComponent(item.title)}')">▶️ 播放</button>
-                        <button class="btn btn-small btn-secondary" onclick="event.stopPropagation(); editItem('${item.id}')">編輯</button>
-                        <label class="toggle" onclick="event.stopPropagation()">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
+                    <div class="item-footer">
+                        <div class="item-footer-left">
+                            <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); editItem('${item.id}')">編輯</button>
+                        </div>
+                        <div class="item-footer-right">
+                            <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteItem('${item.id}', '${item.filename || ''}')">🗑️</button>
+                            <label class="toggle" onclick="event.stopPropagation()">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             `).join('');
