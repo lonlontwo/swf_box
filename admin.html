@@ -554,11 +554,37 @@
                 </div>
 
                 <div class="form-row">
-                    <label class="form-label">選擇 SWF 檔案（上傳新檔案）</label>
+                    <label class="form-label">上傳方式</label>
+                    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="radio" name="upload-type" value="file" checked onchange="toggleUploadType()">
+                            <span>單一檔案</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="radio" name="upload-type" value="folder" onchange="toggleUploadType()">
+                            <span>資料夾（含多個檔案）</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-row" id="file-upload-section">
+                    <label class="form-label">選擇 SWF 檔案</label>
                     <input type="file" id="file-input" class="form-input" accept=".swf">
                     <div id="file-preview" style="display: none;"></div>
                     <div id="progress-bar" class="progress-bar" style="display: none;">
                         <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="form-row" id="folder-upload-section" style="display: none;">
+                    <label class="form-label">選擇資料夾</label>
+                    <input type="file" id="folder-input" class="form-input" webkitdirectory directory multiple>
+                    <div id="folder-preview" style="display: none;"></div>
+                    <div style="font-size: 0.85rem; color: #999; margin-top: 8px;">
+                        💡 提示：選擇包含 SWF 主檔案和相關資源的資料夾
+                    </div>
+                    <div id="folder-progress-bar" class="progress-bar" style="display: none;">
+                        <div id="folder-progress-fill" class="progress-fill"></div>
                     </div>
                 </div>
 
@@ -652,6 +678,8 @@
     <script src="js/config.js"></script>
     <script>
         let selectedFile = null;
+        let selectedFolder = null;
+        let uploadMode = 'file';
         const $ = id => document.getElementById(id);
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -667,6 +695,7 @@
             $('settings-btn').addEventListener('click', openSettingsModal);
             $('submit-btn').addEventListener('click', submitForm);
             $('file-input').addEventListener('change', handleFileSelect);
+            $('folder-input').addEventListener('change', handleFolderSelect);
         });
 
         async function login() {
@@ -693,6 +722,21 @@
             $('password-input').value = '';
         }
 
+        function toggleUploadType() {
+            const mode = document.querySelector('input[name="upload-type"]:checked').value;
+            uploadMode = mode;
+
+            if (mode === 'file') {
+                $('file-upload-section').style.display = 'block';
+                $('folder-upload-section').style.display = 'none';
+                selectedFolder = null;
+            } else {
+                $('file-upload-section').style.display = 'none';
+                $('folder-upload-section').style.display = 'block';
+                selectedFile = null;
+            }
+        }
+
         function showAdmin() {
             $('login-screen').style.display = 'none';
             $('admin-panel').style.display = 'block';
@@ -715,6 +759,34 @@
                 </div>
             `;
             $('file-preview').style.display = 'block';
+        }
+
+        function handleFolderSelect(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            selectedFolder = files;
+
+            // 找到 SWF 主檔案
+            const swfFile = files.find(f => f.name.endsWith('.swf'));
+            if (swfFile && !$('item-title').value) {
+                $('item-title').value = swfFile.name.replace('.swf', '');
+            }
+
+            // 顯示檔案列表
+            const fileList = files.map(f => `
+                <div style="font-size: 0.85rem; padding: 4px 0;">
+                    📄 ${f.webkitRelativePath || f.name} (${formatSize(f.size)})
+                </div>
+            `).join('');
+
+            $('folder-preview').innerHTML = `
+                <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid var(--accent); border-radius: 8px; padding: 12px; margin-top: 8px; max-height: 200px; overflow-y: auto;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">📁 已選擇 ${files.length} 個檔案：</div>
+                    ${fileList}
+                </div>
+            `;
+            $('folder-preview').style.display = 'block';
         }
 
         function removeFile() {
@@ -747,7 +819,13 @@
                 return;
             }
 
-            // 否則要有選擇檔案
+            // 資料夾上傳模式
+            if (uploadMode === 'folder' && selectedFolder) {
+                await uploadFolder(title, thumbnail);
+                return;
+            }
+
+            // 單一檔案上傳模式
             if (!selectedFile) { alert('請選擇 SWF 檔案或輸入 SWF 連結'); return; }
 
             $('submit-btn').disabled = true;
@@ -779,6 +857,65 @@
             } catch (error) {
                 console.error(error);
                 alert('❌ 上傳失敗: ' + error.message);
+            }
+
+            $('submit-btn').disabled = false;
+            $('submit-btn').textContent = '📤 新增作品';
+        }
+
+        // 資料夾上傳函數
+        async function uploadFolder(title, thumbnail) {
+            if (!selectedFolder || selectedFolder.length === 0) {
+                alert('請選擇資料夾');
+                return;
+            }
+
+            $('submit-btn').disabled = true;
+            $('submit-btn').textContent = '上傳資料夾中...';
+            $('folder-progress-bar').style.display = 'block';
+
+            try {
+                const folderName = `${Date.now()}_${title.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                let uploaded = 0;
+
+                // 找到 SWF 主檔案
+                const swfFile = selectedFolder.find(f => f.name.endsWith('.swf'));
+                if (!swfFile) {
+                    alert('❌ 資料夾中沒有找到 SWF 檔案');
+                    return;
+                }
+
+                // 上傳所有檔案
+                for (const file of selectedFolder) {
+                    const relativePath = file.webkitRelativePath || file.name;
+                    const filename = `${folderName}/${relativePath}`;
+
+                    await SWFAPI.uploadFile(file, filename);
+
+                    uploaded++;
+                    const progress = (uploaded / selectedFolder.length) * 100;
+                    $('folder-progress-fill').style.width = progress + '%';
+                }
+
+                // 主檔案 URL
+                const swfUrl = `${SWF_API_URL}/${folderName}/${swfFile.webkitRelativePath || swfFile.name}`;
+
+                await DataAPI.addItem({ title, swfUrl, thumbnail, filename: folderName });
+
+                $('item-title').value = '';
+                $('item-url').value = '';
+                $('item-thumbnail').value = '';
+                selectedFolder = null;
+                $('folder-input').value = '';
+                $('folder-preview').style.display = 'none';
+                $('folder-progress-bar').style.display = 'none';
+                $('folder-progress-fill').style.width = '0%';
+
+                loadItems();
+                alert(`✅ 資料夾上傳成功！共 ${uploaded} 個檔案`);
+            } catch (error) {
+                console.error(error);
+                alert('❌ 資料夾上傳失敗: ' + error.message);
             }
 
             $('submit-btn').disabled = false;
