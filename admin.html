@@ -212,8 +212,8 @@
 
         /* Item List */
         .item-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 16px;
         }
 
@@ -334,6 +334,19 @@
             justify-content: space-between;
             padding-top: 12px;
             border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        .item-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .item-actions {
