@@ -229,6 +229,103 @@
                 hint.classList.remove('show');
             }, 3000);
         }
+
+        // ========================================
+        // 防護機制（防右鍵、防 F12、防開發者工具）
+        // ========================================
+
+        // 1. 禁止右鍵選單
+        document.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            return false;
+        });
+
+        // 2. 禁止常見開發者工具快捷鍵
+        document.addEventListener('keydown', e => {
+            // 保留 ESC 鍵（用於顯示控制列）
+            if (e.key === 'Escape') return;
+
+            // F12
+            if (e.key === 'F12') {
+                e.preventDefault();
+                return false;
+            }
+
+            // Ctrl+Shift+I (開發者工具)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                return false;
+            }
+
+            // Ctrl+Shift+J (Console)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+                return false;
+            }
+
+            // Ctrl+Shift+C (元素檢查)
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                return false;
+            }
+
+            // Ctrl+U (查看原始碼)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                return false;
+            }
+
+            // Ctrl+S (儲存頁面)
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // 3. 禁止選取文字
+        document.addEventListener('selectstart', e => {
+            e.preventDefault();
+            return false;
+        });
+
+        // 4. 禁止複製
+        document.addEventListener('copy', e => {
+            e.preventDefault();
+            return false;
+        });
+
+        // 5. 禁止拖曳
+        document.addEventListener('dragstart', e => {
+            e.preventDefault();
+            return false;
+        });
+
+        // 6. 偵測開發者工具（進階）
+        (function () {
+            const devtools = /./;
+            devtools.toString = function () {
+                this.opened = true;
+            };
+
+            const checkDevTools = () => {
+                if (devtools.opened) {
+                    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#fff;"><h1>⚠️ 請關閉開發者工具</h1></div>';
+                }
+                devtools.opened = false;
+            };
+
+            setInterval(checkDevTools, 1000);
+        })();
+
+        // 7. 防止透過 iframe 嵌入
+        if (window.top !== window.self) {
+            window.top.location = window.self.location;
+        }
+
+        // 8. 清除 console
+        if (typeof console !== 'undefined') {
+            console.log = console.warn = console.error = console.info = console.debug = function () { };
+        }
     </script>
 </body>
 
