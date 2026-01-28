@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>401 錯誤診斷</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #f5576c;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .error-box {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .error-title {
+            color: #991b1b;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .error-desc {
+            color: #7f1d1d;
+            line-height: 1.6;
+        }
+
+        .solution {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .solution-title {
+            color: #14532d;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .step {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid #22c55e;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #22c55e;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            color: #4b5563;
+            margin-left: 38px;
+            line-height: 1.6;
+        }
+
+        .code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #22c55e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .checklist {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .checklist-title {
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .checklist-item {
+            color: #78350f;
+            margin-bottom: 8px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .checklist-item:before {
+            content: "□";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        .info {
+            background: #e0f2fe;
+            border-left: 4px solid #0ea5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-text {
+            color: #075985;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>❌ 401 錯誤診斷</h1>
+        <p class="subtitle">Token 認證失敗，讓我幫你解決！</p>
+
+        <div class="error-box">
+            <div class="error-title">🔍 問題原因</div>
+            <div class="error-desc">
+                <strong>401 Unauthorized</strong> 表示 GitLab Token 認證失敗。<br><br>
+                <strong>最可能的原因：</strong><br>
+                • 你還沒有填入 Token 和 Project ID（目前是預設值）<br>
+                • Token 格式錯誤<br>
+                • Token 權限不足<br>
+                • Token 已過期
+            </div>
+        </div>
+
+        <div class="solution">
+            <div class="solution-title">✅ 解決方案</div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    檢查 config.js 是否已填入資訊
+                </div>
+                <div class="step-desc">
+                    開啟 <span class="code">d:\swf展示平台\js\config.js</span><br>
+                    查看第 15-16 行：<br><br>
+                    <span class="code">token: 'YOUR_GITLAB_TOKEN'</span> ← 如果還是這樣，表示你還沒填入！<br>
+                    <span class="code">projectId: 'YOUR_PROJECT_ID'</span> ← 這個也要改！
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    使用設定工具填入資訊
+                </div>
+                <div class="step-desc">
+                    開啟設定工具，按照步驟操作：<br>
+                    <a href="http://localhost:3000/setup-gitlab.html" target="_blank" class="btn">
+                        🔧 開啟設定工具
+                    </a>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    確認 Token 權限
+                </div>
+                <div class="step-desc">
+                    Token 必須有這兩個權限：<br>
+                    • ✅ <span class="code">api</span><br>
+                    • ✅ <span class="code">write_repository</span><br><br>
+                    如果沒有，需要重新建立 Token
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    確認 Token 格式
+                </div>
+                <div class="step-desc">
+                    GitLab Token 格式應該是：<br>
+                    <span class="code">glpat-xxxxxxxxxxxxxxxxxxxx</span><br><br>
+                    • 以 <span class="code">glpat-</span> 開頭<br>
+                    • 後面跟著一串英數字<br>
+                    • 總長度約 26 個字元
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    儲存並重新整理
+                </div>
+                <div class="step-desc">
+                    修改 config.js 後：<br>
+                    • 儲存檔案（Ctrl + S）<br>
+                    • 重新整理瀏覽器（Ctrl + F5）<br>
+                    • 再次測試上傳
+                </div>
+            </div>
+        </div>
+
+        <div class="checklist">
+            <div class="checklist-title">📋 檢查清單</div>
+            <div class="checklist-item">已建立 GitLab Token</div>
+            <div class="checklist-item">Token 有 api 和 write_repository 權限</div>
+            <div class="checklist-item">已複製 Token（格式：glpat-xxx）</div>
+            <div class="checklist-item">已取得 Project ID（數字）</div>
+            <div class="checklist-item">已填入 config.js 第 15-16 行</div>
+            <div class="checklist-item">已儲存 config.js</div>
+            <div class="checklist-item">已重新整理瀏覽器</div>
+        </div>
+
+        <div class="info">
+            <div class="info-text">
+                <strong>💡 提示：</strong><br>
+                如果你還沒有填入 Token，請先使用設定工具。<br>
+                如果已經填入但還是 401，請檢查 Token 權限是否正確。
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="http://localhost:3000/setup-gitlab.html" class="btn">
+                🔧 開啟設定工具
+            </a>
+            <a href="https://gitlab.com/-/user_settings/personal_access_tokens" target="_blank" class="btn"
+                style="background: #667eea; margin-left: 10px;">
+                🔑 建立新 Token
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

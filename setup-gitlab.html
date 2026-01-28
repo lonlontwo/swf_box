@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitLab 設定工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .step-desc {
+            color: #4a5568;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .link-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .link-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .input-group {
+            margin-top: 15px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #22543d;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #5a67d8;
+        }
+
+        .warning {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .warning-title {
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .warning-text {
+            color: #78350f;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔧 GitLab 設定工具</h1>
+        <p class="subtitle">3 步驟完成設定，支援 50-100MB 大檔案上傳</p>
+
+        <!-- 步驟 1 -->
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                取得 GitLab Token
+            </div>
+            <div class="step-desc">
+                點擊下方按鈕前往 GitLab，建立一個新的 Personal Access Token
+            </div>
+            <a href="https://gitlab.com/-/user_settings/personal_access_tokens" target="_blank" class="link-button">
+                🔗 開啟 GitLab Token 頁面
+            </a>
+            <div class="step-desc" style="margin-top: 15px;">
+                <strong>設定說明：</strong><br>
+                • Token name: <code>SWF Upload</code><br>
+                • Scopes: 勾選 <code>api</code> 和 <code>write_repository</code><br>
+                • 點擊 Create 後，<strong>複製 Token</strong>（只會顯示一次！）
+            </div>
+            <div class="input-group">
+                <label for="token">貼上你的 GitLab Token：</label>
+                <input type="text" id="token" placeholder="glpat-xxxxxxxxxxxxxxxxxxxx">
+            </div>
+        </div>
+
+        <!-- 步驟 2 -->
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                取得 Project ID
+            </div>
+            <div class="step-desc">
+                進入你的 GitLab 專案頁面，在專案名稱下方可以看到 <strong>Project ID</strong>
+            </div>
+            <div class="input-group">
+                <label for="projectId">輸入你的 Project ID：</label>
+                <input type="text" id="projectId" placeholder="12345678">
+            </div>
+        </div>
+
+        <!-- 步驟 3 -->
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">3</span>
+                生成配置代碼
+            </div>
+            <div class="step-desc">
+                填寫完上面的資訊後，點擊下方按鈕生成配置代碼
+            </div>
+            <button class="btn" onclick="generateConfig()">✨ 生成配置代碼</button>
+        </div>
+
+        <!-- 結果 -->
+        <div class="result" id="result">
+            <h3>✅ 配置代碼已生成！</h3>
+            <p style="color: #4a5568; margin-bottom: 10px;">
+                複製下方代碼，貼到 <code>js/config.js</code> 的第 14-17 行：
+            </p>
+            <div class="code-block" id="configCode"></div>
+            <button class="copy-btn" onclick="copyConfig()">📋 複製代碼</button>
+
+            <div class="warning" style="margin-top: 20px;">
+                <div class="warning-title">⚠️ 安全提醒</div>
+                <div class="warning-text">
+                    • Token 會在前端代碼中，不要分享 config.js 給別人<br>
+                    • 定期更換 Token<br>
+                    • 只給這個 Token 必要的權限
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #e6fffa; border-radius: 8px;">
+                <strong style="color: #234e52;">🎯 下一步：</strong>
+                <ol style="color: #285e61; margin-left: 20px; margin-top: 10px;">
+                    <li>開啟 <code>d:\swf展示平台\js\config.js</code></li>
+                    <li>找到第 14-17 行的 GITLAB_CONFIG</li>
+                    <li>貼上剛剛複製的代碼</li>
+                    <li>儲存檔案</li>
+                    <li>重新整理瀏覽器，測試上傳！</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateConfig() {
+            const token = document.getElementById('token').value.trim();
+            const projectId = document.getElementById('projectId').value.trim();
+
+            if (!token) {
+                alert('請輸入 GitLab Token！');
+                return;
+            }
+
+            if (!projectId) {
+                alert('請輸入 Project ID！');
+                return;
+            }
+
+            const config = `const GITLAB_CONFIG = {
+  token: '${token}',
+  projectId: '${projectId}',
+  branch: 'main'
+};`;
+
+            document.getElementById('configCode').textContent = config;
+            document.getElementById('result').classList.add('show');
+
+            // 滾動到結果
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyConfig() {
+            const code = document.getElementById('configCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ 已複製！';
+                btn.style.background = '#48bb78';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#667eea';
+                }, 2000);
+            });
+        }
+
+        // 自動偵測輸入
+        document.getElementById('token').addEventListener('input', checkInputs);
+        document.getElementById('projectId').addEventListener('input', checkInputs);
+
+        function checkInputs() {
+            const token = document.getElementById('token').value.trim();
+            const projectId = document.getElementById('projectId').value.trim();
+            const btn = document.querySelector('.btn');
+
+            if (token && projectId) {
+                btn.disabled = false;
+                btn.style.background = '#48bb78';
+            } else {
+                btn.disabled = true;
+                btn.style.background = '#cbd5e0';
+            }
+        }
+
+        // 初始化
+        checkInputs();
+    </script>
+</body>
+
+</html>

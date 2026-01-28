@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分塊上傳流程圖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 900px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1rem;
+        }
+
+        .flow {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .step:hover {
+            transform: translateX(10px);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            margin-top: 10px;
+        }
+
+        .step-desc {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .step-code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .arrow {
+            text-align: center;
+            color: #667eea;
+            font-size: 2rem;
+            margin: -10px 0;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .highlight .step-title {
+            color: white;
+        }
+
+        .highlight .step-desc {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .info-box {
+            background: #edf2f7;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .info-box li {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 分塊上傳流程</h1>
+        <p class="subtitle">解決超過 10MB 檔案上傳限制</p>
+
+        <div class="flow">
+            <!-- Step 1 -->
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-title">📁 選擇檔案</div>
+                <div class="step-desc">
+                    使用者在後台選擇一個 SWF 檔案（例如 20MB）
+                </div>
+                <div class="step-code">
+                    檔案大小: 20MB<br>
+                    檔案名稱: game.swf
+                </div>
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <!-- Step 2 -->
+            <div class="step highlight">
+                <div class="step-number">2</div>
+                <div class="step-title">🔍 智能判斷</div>
+                <div class="step-desc">
+                    前端自動判斷檔案大小，決定上傳方式
+                </div>
+                <div class="step-code">
+                    if (fileSize <= 8MB) → 直接上傳<br>
+                        if (fileSize > 8MB) → 分塊上傳 ✓
+                </div>
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <!-- Step 3 -->
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-title">✂️ 分割檔案</div>
+                <div class="step-desc">
+                    將大檔案分割成多個 8MB 的小塊
+                </div>
+                <div class="step-code">
+                    分塊 1: 0-8MB (8MB)<br>
+                    分塊 2: 8-16MB (8MB)<br>
+                    分塊 3: 16-20MB (4MB)<br>
+                    總共: 3 塊
+                </div>
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <!-- Step 4 -->
+            <div class="step highlight">
+                <div class="step-number">4</div>
+                <div class="step-title">📤 逐塊上傳</div>
+                <div class="step-desc">
+                    依序上傳每個分塊到 Cloudflare Worker
+                </div>
+                <div class="step-code">
+                    POST /upload-chunk (分塊 1) → 33% ✓<br>
+                    POST /upload-chunk (分塊 2) → 66% ✓<br>
+                    POST /upload-chunk (分塊 3) → 100% ✓
+                </div>
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <!-- Step 5 -->
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-title">🔗 合併分塊</div>
+                <div class="step-desc">
+                    Worker 接收所有分塊後，在記憶體中合併成完整檔案
+                </div>
+                <div class="step-code">
+                    合併: 分塊1 + 分塊2 + 分塊3<br>
+                    結果: 完整的 20MB 檔案
+                </div>
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <!-- Step 6 -->
+            <div class="step highlight">
+                <div class="step-number">6</div>
+                <div class="step-title">☁️ 上傳到 GitLab</div>
+                <div class="step-desc">
+                    Worker 將合併後的完整檔案上傳到 GitLab 儲存
+                </div>
+                <div class="step-code">
+                    POST /api/v4/projects/{id}/repository/files<br>
+                    檔案: game.swf (20MB, Base64 編碼)
+                </div>
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <!-- Step 7 -->
+            <div class="step">
+                <div class="step-number">7</div>
+                <div class="step-title">✅ 完成</div>
+                <div class="step-desc">
+                    儲存檔案 URL 到 Firebase，前台可以播放
+                </div>
+                <div class="step-code">
+                    URL: https://swf-api.../game.swf<br>
+                    狀態: 上傳成功 ✓
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>💡 關鍵優勢</h3>
+            <ul>
+                <li><strong>突破限制</strong>：支援任意大小檔案（受 GitLab 限制）</li>
+                <li><strong>實時進度</strong>：顯示實際上傳百分比</li>
+                <li><strong>自動判斷</strong>：小檔案直接上傳，大檔案自動分塊</li>
+                <li><strong>穩定可靠</strong>：每個分塊獨立上傳，失敗時可重試</li>
+            </ul>
+        </div>
+
+        <div class="info-box" style="margin-top: 20px; border-left-color: #f5576c;">
+            <h3>⚙️ 技術參數</h3>
+            <ul>
+                <li><strong>分塊大小</strong>：8MB（可調整）</li>
+                <li><strong>最大檔案</strong>：約 100MB（GitLab 限制）</li>
+                <li><strong>編碼方式</strong>：Base64</li>
+                <li><strong>傳輸協議</strong>：HTTPS</li>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>
