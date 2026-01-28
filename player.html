@@ -170,7 +170,17 @@
                 player.style.height = '100%';
                 container.innerHTML = '';
                 container.appendChild(player);
-                await player.load(url);
+
+                // 配置：跳過 Ruffle 開頭動畫，直接播放 SWF
+                await player.load({
+                    url: url,
+                    autoplay: 'on',           // 自動播放
+                    unmuteOverlay: 'hidden',  // 隱藏取消靜音提示
+                    splashScreen: false,      // 不顯示 Ruffle 啟動畫面
+                    preloader: false,         // 不顯示預載畫面
+                    backgroundColor: '#000000' // 背景色
+                });
+
                 console.log('✅ SWF 載入成功');
                 showHint();
             } catch (error) {
