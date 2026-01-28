@@ -261,14 +261,14 @@
         .item-icon {
             width: 64px;
             height: 64px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            background: transparent;
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 2rem;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+            overflow: hidden;
         }
 
         .item-info {
@@ -400,42 +400,130 @@
             transform: translateX(24px);
         }
 
-        /* Login Screen */
+        /* Login Screen (兔兔網風格重現) */
         .login-screen {
             min-height: 100vh;
+            background: #000000;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
 
-        .login-box {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 48px;
+        .login-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 40px 32px;
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2a2a;
+        }
+
+        .login-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
         }
 
         .login-title {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .login-title span {
+            color: #f06e28;
+            /* 橙色 UI 文字 */
+            margin-left: 4px;
         }
 
         .login-subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 32px;
+            color: #888;
+            font-size: 13px;
+            margin: 8px 0 32px 0;
+            font-weight: 400;
         }
 
-        .login-box .form-input {
-            text-align: center;
+        .login-form {
+            text-align: left;
+        }
+
+        .login-label {
+            display: block;
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .login-input {
+            width: 100%;
+            height: 44px;
+            background: #252525;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 0 16px;
+            color: #fff;
+            font-size: 14px;
             margin-bottom: 16px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .login-input:focus {
+            border-color: #f06e28;
+            background: #2a2a2a;
+        }
+
+        .login-input::placeholder {
+            color: #555;
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 44px;
+            background: #f06e28;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .login-btn:hover {
+            background: #ff7e3d;
+            transform: translateY(-1px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
         }
 
         .login-error {
-            color: var(--danger);
-            font-size: 0.9rem;
-            margin-top: 12px;
+            color: #ff4d4d;
+            font-size: 12px;
+            text-align: center;
+            margin-top: -8px;
+            margin-bottom: 12px;
+        }
+
+        .login-back-link {
+            display: inline-block;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            margin-top: 16px;
+            transition: color 0.2s;
+        }
+
+        .login-back-link:hover {
+            color: #999;
         }
 
         /* Empty State */
@@ -773,14 +861,21 @@
 </head>
 
 <body>
-    <!-- Login Screen -->
+    <!-- Login Screen (兔兔網風格重現) -->
     <div id="login-screen" class="login-screen">
-        <div class="login-box">
-            <div class="login-title">🔐 後台管理</div>
-            <p class="login-subtitle">請輸入管理密碼</p>
-            <input type="password" id="password-input" class="form-input" placeholder="輸入密碼..." autofocus>
-            <button id="login-btn" class="btn btn-primary" style="width: 100%; padding: 14px;">登入</button>
-            <p id="login-error" class="login-error" style="display: none;"></p>
+        <div class="login-card">
+            <div class="login-icon">🐰</div>
+            <h1 class="login-title">兔兔網 <span>SWF</span></h1>
+            <p class="login-subtitle">選取權限管理系統</p>
+
+            <div class="login-form">
+                <label class="login-label">帳號密碼</label>
+                <input type="password" id="password-input" class="login-input" placeholder="請輸入管理密碼" autofocus>
+                <button id="login-btn" class="login-btn">登入</button>
+                <p id="login-error" class="login-error" style="display: none;"></p>
+            </div>
+
+            <a href="index.html" class="login-back-link">+ 返回首頁</a>
         </div>
     </div>
 
@@ -944,6 +1039,7 @@
         let selectedFile = null;
         let selectedFolder = null;
         let uploadMode = 'file';
+        let currentItems = []; // 保存已載入的項目
         const $ = id => document.getElementById(id);
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1098,15 +1194,12 @@
 
             try {
                 const filename = `${Date.now()}_${selectedFile.name}`;
-                let progress = 0;
-                const interval = setInterval(() => {
-                    progress += 10;
-                    if (progress <= 90) $('progress-fill').style.width = progress + '%';
-                }, 100);
 
-                const swfUrl = await SWFAPI.uploadFile(selectedFile, filename);
-                clearInterval(interval);
-                $('progress-fill').style.width = '100%';
+                // 使用實際進度回調
+                const swfUrl = await SWFAPI.uploadFile(selectedFile, filename, (progress) => {
+                    $('progress-fill').style.width = progress + '%';
+                    $('submit-btn').textContent = `上傳中... ${progress}%`;
+                });
 
                 await DataAPI.addItem({ title, swfUrl, thumbnail, filename });
 
@@ -1154,7 +1247,13 @@
                     const relativePath = file.webkitRelativePath || file.name;
                     const filename = `${folderName}/${relativePath}`;
 
-                    await SWFAPI.uploadFile(file, filename);
+                    // 使用進度回調
+                    await SWFAPI.uploadFile(file, filename, (fileProgress) => {
+                        // 計算總進度：已完成檔案 + 當前檔案進度
+                        const totalProgress = ((uploaded + fileProgress / 100) / selectedFolder.length) * 100;
+                        $('folder-progress-fill').style.width = totalProgress + '%';
+                        $('submit-btn').textContent = `上傳中... ${Math.round(totalProgress)}%`;
+                    });
 
                     uploaded++;
                     const progress = (uploaded / selectedFolder.length) * 100;
@@ -1188,6 +1287,17 @@
 
         async function loadItems() {
             const items = await DataAPI.getItems();
+
+            // 按照 order 欄位排序（如果有的話），否則按建立時間
+            items.sort((a, b) => {
+                if (a.order !== undefined && b.order !== undefined) {
+                    return a.order - b.order;
+                }
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+
+            currentItems = items; // 保存到全域變數
+
             if (items.length === 0) {
                 $('item-list').innerHTML = '';
                 $('empty-state').style.display = 'block';
@@ -1198,7 +1308,12 @@
             $('item-list').innerHTML = items.map((item, index) => `
                 <div class="item-card" draggable="true" data-id="${item.id}" data-index="${index}">
                     <div class="item-header">
-                        <div class="item-icon">🎬</div>
+                        <div class="item-icon">
+                            ${item.thumbnail
+                    ? `<img src="${item.thumbnail}" alt="${escapeHtml(item.title)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">`
+                    : '🎬'
+                }
+                        </div>
                         <div class="item-info">
                             <div class="item-title">
                                 <span class="item-name">${escapeHtml(item.title)}</span>
@@ -1220,7 +1335,7 @@
                         <div class="item-footer-right">
                             <button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteItem('${item.id}', '${item.filename || ''}')">🗑️</button>
                             <label class="toggle" onclick="event.stopPropagation()">
-                                <input type="checkbox" checked>
+                                <input type="checkbox" ${item.visible !== false ? 'checked' : ''} onchange="toggleVisibility('${item.id}', this.checked)">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -1236,9 +1351,13 @@
         }
 
         function editItem(id) {
-            const items = DataAPI.getLocalItems();
-            const item = items.find(i => i.id === id);
-            if (!item) return;
+            // 從已載入的項目中找資料
+            const item = currentItems.find(i => i.id === id);
+            if (!item) {
+                console.error('找不到項目:', id);
+                alert('找不到要編輯的項目');
+                return;
+            }
 
             $('edit-id').value = id;
             $('edit-title').value = item.title;
@@ -1292,6 +1411,19 @@
             return div.innerHTML;
         }
 
+        // 切換前台顯示/隱藏
+        async function toggleVisibility(id, visible) {
+            try {
+                await DataAPI.updateItem(id, { visible });
+                console.log(`✅ 項目 ${id} 已${visible ? '顯示' : '隱藏'}`);
+            } catch (error) {
+                console.error('更新顯示狀態失敗:', error);
+                alert('❌ 更新失敗');
+                // 重新載入以恢復原狀態
+                loadItems();
+            }
+        }
+
         // 拖曳排序
         let draggedItem = null;
         let draggedIndex = null;
@@ -1336,15 +1468,31 @@
             this.classList.remove('drag-over');
         }
 
-        function handleDrop(e) {
+        async function handleDrop(e) {
             e.preventDefault();
             if (this === draggedItem) return;
+
             const targetIndex = parseInt(this.dataset.index);
-            let items = DataAPI.getLocalItems();
+
+            // 使用已載入的 Firebase 資料
+            let items = [...currentItems];
+
+            // 重新排序
             const [movedItem] = items.splice(draggedIndex, 1);
             items.splice(targetIndex, 0, movedItem);
-            localStorage.setItem('swf_items', JSON.stringify(items));
-            loadItems();
+
+            // 更新每個項目的 order 欄位到 Firebase
+            try {
+                for (let i = 0; i < items.length; i++) {
+                    await DataAPI.updateItem(items[i].id, { order: i });
+                }
+
+                // 重新載入項目以顯示新順序
+                await loadItems();
+            } catch (error) {
+                console.error('排序儲存失敗:', error);
+                alert('❌ 排序儲存失敗');
+            }
         }
 
         // ================================
@@ -1400,6 +1548,25 @@
                 alert('❌ 密碼更新失敗');
             }
         }
+    </script>
+
+    <!-- 防護機制 -->
+    <script>
+        // 禁止右鍵
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // 禁止 F12、Ctrl+Shift+I、Ctrl+Shift+J、Ctrl+U
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // 禁止選取文字
+        document.addEventListener('selectstart', e => e.preventDefault());
     </script>
 </body>
 

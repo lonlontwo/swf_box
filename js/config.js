@@ -2,11 +2,20 @@
 // SWF 展示平台 - 配置與數據 API
 // ================================
 
-// 後台預設密碼
-const DEFAULT_ADMIN_PASSWORD = 'csmcsm46';
-
-// GitLab Worker API (Cloudflare)
+// Cloudflare Worker API URL
 const SWF_API_URL = 'https://swf-api.lonlontwo0420.workers.dev';
+
+// ================================
+// GitLab 配置（直接上傳，支援大檔案）
+// ================================
+// ⚠️ 請填入你的 GitLab 資訊：
+// 1. Token: https://gitlab.com/-/user_settings/personal_access_tokens
+// 2. Project ID: 在你的 GitLab 專案頁面可以看到
+const GITLAB_CONFIG = {
+  token: 'glpat-mazOVFQCOECXmZlvoDtj2W86MQp1OmZtMGk2Cw.01.121jj0fgi',
+  projectId: '77826733',
+  branch: 'main'
+};
 
 // Firebase 配置
 const FIREBASE_CONFIG = {
@@ -19,75 +28,159 @@ const FIREBASE_CONFIG = {
   measurementId: "G-JBK7XXCFPG"
 };
 
-// Firestore collection 名稱
 const COLLECTION_NAME = 'swf_items';
-
-// Firebase 狀態
 let db = null;
 let firebaseReady = false;
 
 // 初始化 Firebase
 async function initFirebase() {
   try {
-    // 檢查 Firebase SDK 是否已載入
     if (typeof firebase === 'undefined') {
-      console.warn('⚠️ Firebase SDK 未載入，使用本地存儲');
+      console.warn('⚠️ Firebase SDK 未載入');
       return false;
     }
-
-    // 初始化 Firebase App
     if (!firebase.apps.length) {
       firebase.initializeApp(FIREBASE_CONFIG);
     }
-
-    // 初始化 Firestore
     db = firebase.firestore();
     firebaseReady = true;
-    console.log('✅ Firebase 已連接 - Collection:', COLLECTION_NAME);
+    console.log('✅ Firebase 已連接');
     return true;
   } catch (error) {
-    console.error('❌ Firebase 初始化失敗:', error);
-    firebaseReady = false;
+    console.error('❌ Firebase 失敗:', error);
     return false;
   }
 }
 
 // ================================
-// SWF 檔案 API (GitLab + Cloudflare Worker)
+// SWF 檔案 API（直接上傳到 GitLab，支援大檔案）
 // ================================
 
 const SWFAPI = {
-  // 上傳 SWF 檔案
-  async uploadFile(file, filename) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('filename', filename);
+  // 上傳 SWF 檔案（直接上傳到 GitLab，支援 50-100MB）
+  async uploadFile(file, filename, onProgress = null) {
+    console.log(`📤 開始上傳: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 
-    const response = await fetch(`${SWF_API_URL}/upload`, {
-      method: 'POST',
-      body: formData
-    });
+    try {
+      // 步驟 1: 讀取檔案為 Base64（10-40%）
+      if (onProgress) onProgress(10);
+      console.log('📖 讀取檔案...');
 
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(result.error || '上傳失敗');
+      const base64Content = await this.fileToBase64(file, (readProgress) => {
+        // 讀取進度佔 10-40%
+        if (onProgress) onProgress(10 + readProgress * 0.3);
+      });
+
+      if (onProgress) onProgress(40);
+      console.log('✓ 檔案讀取完成');
+
+      // 步驟 2: 上傳到 GitLab（40-90%）
+      console.log('📡 上傳到 GitLab...');
+      const gitlabUrl = `https://gitlab.com/api/v4/projects/${GITLAB_CONFIG.projectId}/repository/files/${encodeURIComponent(filename)}`;
+
+      if (onProgress) onProgress(50);
+
+      const response = await fetch(gitlabUrl, {
+        method: 'POST',
+        headers: {
+          'PRIVATE-TOKEN': GITLAB_CONFIG.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          branch: GITLAB_CONFIG.branch,
+          content: base64Content,
+          commit_message: `Upload ${filename}`,
+          encoding: 'base64'
+        })
+      });
+
+      if (onProgress) onProgress(90);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMsg = `GitLab 上傳失敗 (${response.status})`;
+
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMsg += `: ${errorJson.message || errorText}`;
+        } catch {
+          errorMsg += `: ${errorText}`;
+        }
+
+        throw new Error(errorMsg);
+      }
+
+      if (onProgress) onProgress(100);
+      console.log('✅ 上傳成功！');
+
+      // 返回 Worker 代理 URL（用於播放）
+      return `${SWF_API_URL}/${filename}`;
+
+    } catch (error) {
+      console.error('❌ 上傳失敗:', error);
+      throw error;
     }
-    // 直接返回 Worker 代理 URL
-    return `${SWF_API_URL}/${filename}`;
+  },
+
+  // 將檔案轉為 Base64（支援進度回調）
+  async fileToBase64(file, onProgress = null) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) {
+          const progress = (e.loaded / e.total) * 100;
+          onProgress(progress);
+        }
+      };
+
+      reader.onload = () => {
+        // 移除 data:xxx;base64, 前綴
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+
+      reader.onerror = () => {
+        reject(new Error('檔案讀取失敗'));
+      };
+
+      reader.readAsDataURL(file);
+    });
   },
 
   // 刪除 SWF 檔案
   async deleteFile(filename) {
-    const response = await fetch(`${SWF_API_URL}/${filename}`, {
-      method: 'DELETE'
-    });
-    return response.ok;
+    try {
+      const gitlabUrl = `https://gitlab.com/api/v4/projects/${GITLAB_CONFIG.projectId}/repository/files/${encodeURIComponent(filename)}`;
+
+      const response = await fetch(gitlabUrl, {
+        method: 'DELETE',
+        headers: {
+          'PRIVATE-TOKEN': GITLAB_CONFIG.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          branch: GITLAB_CONFIG.branch,
+          commit_message: `Delete ${filename}`
+        })
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('刪除失敗:', error);
+      return false;
+    }
   },
 
   // 取得檔案列表
   async listFiles() {
-    const response = await fetch(SWF_API_URL);
-    return response.json();
+    try {
+      const response = await fetch(SWF_API_URL);
+      return response.json();
+    } catch (error) {
+      console.error('取得列表失敗:', error);
+      return { success: false, files: [] };
+    }
   },
 
   // 取得檔案 URL
@@ -101,189 +194,98 @@ const SWFAPI = {
 // ================================
 
 const DataAPI = {
-  // 取得所有 SWF 項目
+  // 取得作品
   async getItems() {
     if (firebaseReady && db) {
       try {
-        const snapshot = await db.collection(COLLECTION_NAME)
-          .orderBy('createdAt', 'desc')
-          .get();
-        return snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const snapshot = await db.collection(COLLECTION_NAME).orderBy('createdAt', 'desc').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (error) {
-        console.error('Firebase 讀取失敗，使用本地資料:', error);
-        return this.getLocalItems();
+        return JSON.parse(localStorage.getItem('swf_items') || '[]');
       }
     }
-    return this.getLocalItems();
+    return JSON.parse(localStorage.getItem('swf_items') || '[]');
   },
 
-  // 本地資料
-  getLocalItems() {
-    try {
-      return JSON.parse(localStorage.getItem('swf_items') || '[]');
-    } catch {
-      return [];
-    }
-  },
-
-  // 新增項目
+  // 新增作品
   async addItem(item) {
-    const newItem = {
-      ...item,
-      createdAt: new Date().toISOString()
-    };
-
+    const newItem = { ...item, createdAt: new Date().toISOString() };
     if (firebaseReady && db) {
       try {
         const docRef = await db.collection(COLLECTION_NAME).add(newItem);
-        console.log('✅ 已儲存至 Firebase:', docRef.id);
         return { id: docRef.id, ...newItem };
       } catch (error) {
-        console.error('Firebase 寫入失敗，儲存至本地:', error);
+        console.error('儲存失敗');
       }
     }
-
-    // 備援：儲存到本地
     newItem.id = 'local_' + Date.now();
-    const items = this.getLocalItems();
-    items.unshift(newItem);
-    localStorage.setItem('swf_items', JSON.stringify(items));
     return newItem;
   },
 
-  // 更新項目
+  // 更新作品
   async updateItem(id, updates) {
     if (firebaseReady && db && !id.startsWith('local_')) {
-      try {
-        await db.collection(COLLECTION_NAME).doc(id).update(updates);
-        console.log('✅ Firebase 更新成功');
-        return { id, ...updates };
-      } catch (error) {
-        console.error('Firebase 更新失敗:', error);
-      }
-    }
-
-    // 本地更新
-    const items = this.getLocalItems();
-    const index = items.findIndex(i => i.id === id);
-    if (index !== -1) {
-      items[index] = { ...items[index], ...updates };
-      localStorage.setItem('swf_items', JSON.stringify(items));
-      return items[index];
+      await db.collection(COLLECTION_NAME).doc(id).update(updates);
+      return { id, ...updates };
     }
     return null;
   },
 
-  // 刪除項目
+  // 刪除作品
   async deleteItem(id) {
     if (firebaseReady && db && !id.startsWith('local_')) {
-      try {
-        await db.collection(COLLECTION_NAME).doc(id);
-        await db.collection(COLLECTION_NAME).doc(id).delete();
-        console.log('✅ Firebase 刪除成功');
-        return true;
-      } catch (error) {
-        console.error('Firebase 刪除失敗:', error);
-      }
+      await db.collection(COLLECTION_NAME).doc(id).delete();
+      return true;
     }
-
-    // 本地刪除
-    const items = this.getLocalItems();
-    const filtered = items.filter(i => i.id !== id);
-    localStorage.setItem('swf_items', JSON.stringify(filtered));
-    return true;
+    return false;
   },
 
-  // 驗證密碼
+  // ================================
+  // 🔐 密碼驗證 (恢復原有模式)
+  // ================================
+
+  // 使用 SHA-256 生成雜湊值
+  async hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  // 驗證管理員：改回使用 Firebase 中儲存的雜湊
   async verifyPassword(password) {
     if (firebaseReady && db) {
       try {
         const doc = await db.collection('system_config').doc('admin_password').get();
         if (doc.exists) {
-          return password === doc.data().password;
+          const storedHash = doc.data().passwordHash;
+          const inputHash = await this.hashPassword(password);
+          return inputHash === storedHash;
+        } else {
+          // 備援：如果 Firebase 沒設定，檢查是否為預設密碼
+          const inputHash = await this.hashPassword(password);
+          return inputHash === '5f4dcc3b5aa765d61d8327deb882cf99'; // 範例雜湊
         }
       } catch (error) {
-        console.error('Firebase 密碼讀取失敗:', error);
+        console.error('Firebase 驗證失敗');
+        return false;
       }
     }
-    // 備援：使用預設密碼
-    return password === DEFAULT_ADMIN_PASSWORD;
+    return false;
   },
 
-  // 更新密碼
+  // 更新管理員密碼
   async updatePassword(newPassword) {
     if (firebaseReady && db) {
-      try {
-        await db.collection('system_config').doc('admin_password').set({
-          password: newPassword,
-          updatedAt: new Date().toISOString()
-        });
-        console.log('✅ 密碼已儲存至 Firebase');
-        return true;
-      } catch (error) {
-        console.error('Firebase 密碼更新失敗:', error);
-        throw error;
-      }
+      const newHash = await this.hashPassword(newPassword);
+      await db.collection('system_config').doc('admin_password').set({
+        passwordHash: newHash,
+        updatedAt: new Date().toISOString()
+      });
+      alert('密碼已更新！');
+      return true;
     }
-    throw new Error('Firebase 未連接');
-  },
-
-  // 同步本地資料到 Firebase
-  async syncLocalToFirebase() {
-    if (!firebaseReady || !db) return;
-
-    const localItems = this.getLocalItems();
-    if (localItems.length === 0) return;
-
-    console.log('🔄 同步本地資料到 Firebase...');
-    for (const item of localItems) {
-      if (item.id.startsWith('local_')) {
-        const { id, ...data } = item;
-        await db.collection(COLLECTION_NAME).add(data);
-      }
-    }
-    localStorage.removeItem('swf_items');
-    console.log('✅ 同步完成');
+    return false;
   }
 };
-
-// ================================
-// 工具函數
-// ================================
-
-function showToast(message, type = 'info') {
-  const container = document.querySelector('.toast-container') || createToastContainer();
-
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `
-    <span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
-    <span>${message}</span>
-  `;
-
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.animation = 'slideIn 0.3s ease reverse';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
-function createToastContainer() {
-  const container = document.createElement('div');
-  container.className = 'toast-container';
-  document.body.appendChild(container);
-  return container;
-}
-
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-}

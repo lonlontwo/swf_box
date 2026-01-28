@@ -16,12 +16,6 @@
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="header">
-    <div class="logo">🎬 SWF 展示庫</div>
-    <div class="subtitle">我的 Flash 作品收藏</div>
-  </header>
-
   <!-- Main Content -->
   <main class="container">
     <!-- Loading State -->
@@ -45,6 +39,25 @@
   <!-- Scripts -->
   <script src="js/config.js"></script>
   <script src="js/gallery.js"></script>
+
+  <!-- 防護機制 -->
+  <script>
+    // 禁止右鍵
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 禁止 F12、Ctrl+Shift+I、Ctrl+Shift+J、Ctrl+U
+    document.addEventListener('keydown', e => {
+      if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // 禁止選取文字
+    document.addEventListener('selectstart', e => e.preventDefault());
+  </script>
 </body>
 
 </html>
